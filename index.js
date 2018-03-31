@@ -7,15 +7,22 @@ const options = {
 };
 const bot = new TelegramBot(TOKEN, options);
 
-let imageId = null;
+let imageurl = null;
 
 bot.onText(/.*/, msg => {
     bot.sendMessage(msg.chat.id, 'Please send a picture of the accident.');
 });
 
 bot.on('message', (msg) => {
-    console.log(msg);
+    console.log(msg)
     if(msg.photo){
+
+        const fileId = msg.photo[1].file_id;
+        const url = `https://api.telegram.org/bot${TOKEN}/getFile?file_id=${fileId}`
+        request(url,(err,res,body) => {
+          imageurl = `https://api.telegram.org/file/bot${TOKEN}/${JSON.parse(body).result.file_path}`
+        })
+
         imageId = msg.photo[1].file_id;
         const opts = {
             "parse_mode": "Markdown",
@@ -32,20 +39,24 @@ bot.on('message', (msg) => {
     }
 });
 
+
 bot.on('message', (msg) => {
-    if(msg.location){
-        bot.sendMessage(msg.chat.id, 'Thank you for reporting.');
-        bot.getFileLink(imageId).then(imageLink => {
-            const data = {
-                imageLink,
-                location: msg.location
-            }
-            request('http://localhost:9000/accident?info=' + JSON.stringify(data), (err, res, body) => {
-                console.log(body);
-            })
+    if(msg.location && imageurl){
+      const { location, message_id } = msg
+      console.log(msg.location)
+      bot.sendMessage(msg.chat.id, 'Thank you for reporting.');
+      request.post({
+        headers: {'content-type': 'application/json'},
+        url: 'http://54.202.1.109/accident-report',
+        body: JSON.stringyfy({
+          imageurl,
+          location,
+          message_id
         })
+      })
     }
 });
+
 
 // Handle callback queries
 bot.on('callback_query', function onCallbackQuery(callbackQuery) {
