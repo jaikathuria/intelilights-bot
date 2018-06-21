@@ -1,12 +1,13 @@
-const TOKEN = '593370798:AAFAxBJE5jeqIncli1bT9FgAdqcL1Qi7MmI';
+const TOKEN = '573081808:AAEKiirOgAkawx_6Q2qINcZfE0bEeZGl3Jk';
 //const TOKEN = process.env.TELEGRAM_TOKEN || '';
 const TelegramBot = require('node-telegram-bot-api');
 const request = require('request');
 const options = {
-  polling: true
+  polling: true,
+  
 };
-const bot = new TelegramBot(TOKEN, options);
 
+const bot = new TelegramBot(TOKEN, options);
 let imageurl = null;
 
 bot.onText(/.*/, msg => {
@@ -14,7 +15,6 @@ bot.onText(/.*/, msg => {
 });
 
 bot.on('message', (msg) => {
-    console.log(msg)
     if(msg.photo){
 
         const fileId = msg.photo[1].file_id;
@@ -43,17 +43,20 @@ bot.on('message', (msg) => {
 bot.on('message', (msg) => {
     if(msg.location && imageurl){
       const { location, message_id } = msg
-      console.log(msg.location)
+      
       bot.sendMessage(msg.chat.id, 'Thank you for reporting.');
       request.post({
         headers: {'content-type': 'application/json'},
-        url: 'http://54.202.1.109/accident-report',
+        url: 'http//54.202.1.109/accident-report',
         body: JSON.stringyfy({
           imageurl,
           location,
           message_id
-        })
-      })
+        },(err,res,body)=>{
+	   console.log(JSON.parse(body))
+	})
+      })  
+      console.log(imageurl)
     }
 });
 
@@ -74,3 +77,6 @@ bot.on('callback_query', function onCallbackQuery(callbackQuery) {
 
   bot.editMessageText(text, opts);
 });
+
+
+
