@@ -8,7 +8,7 @@ const options = {
 };
 
 const bot = new TelegramBot(TOKEN, options);
-let imageurl = null;
+let imageID = null;
 
 bot.onText(/.*/, msg => {
     bot.sendMessage(msg.chat.id, 'Please send a picture of the accident.');
@@ -16,14 +16,7 @@ bot.onText(/.*/, msg => {
 
 bot.on('message', (msg) => {
     if(msg.photo){
-
-        const fileId = msg.photo[1].file_id;
-        const url = `https://api.telegram.org/bot${TOKEN}/getFile?file_id=${fileId}`
-        request(url,(err,res,body) => {
-          imageurl = `https://api.telegram.org/file/bot${TOKEN}/${JSON.parse(body).result.file_path}`
-        })
-
-        imageId = msg.photo[1].file_id;
+        imageID = msg.photo[1].file_id;
         const opts = {
             "parse_mode": "Markdown",
             "reply_markup": {
@@ -41,42 +34,15 @@ bot.on('message', (msg) => {
 
 
 bot.on('message', (msg) => {
-    if(msg.location && imageurl){
+    if(msg.location && imageID){
       const { location, message_id } = msg
-      
       bot.sendMessage(msg.chat.id, 'Thank you for reporting.');
-      request.post({
-        headers: {'content-type': 'application/json'},
-        url: 'http://18.191.226.151/accident-report',
-        body: JSON.stringyfy({
-          imageurl,
-          location,
-          message_id
-        },(err,res,body)=>{
-	   console.log(JSON.parse(body))
-	})
-      })  
-      console.log(imageurl)
+      const url = `http://18.191.226.151/accident-report?msg=${message_id}&lat=${location.latitude}&lon=${location.longitude}&url=${imageID}`
+      console.log(url)
+      request(url,(err,res,body)=>{
+	       console.log({location,message_id,imageID})
+	    })
     }
 });
-
-
-// Handle callback queries
-bot.on('callback_query', function onCallbackQuery(callbackQuery) {
-  const action = callbackQuery.data;
-  const msg = callbackQuery.message;
-  const opts = {
-    chat_id: msg.chat.id,
-    message_id: msg.message_id,
-  };
-  let text;
-
-  if (action === 'edit') {
-    text = 'Edited Text';
-  }
-
-  bot.editMessageText(text, opts);
-});
-
 
 
