@@ -47,7 +47,7 @@ bot.on('message', (msg) => {
       bot.sendMessage(msg.chat.id, 'Thank you for reporting.');
       request.post({
         headers: {'content-type': 'application/json'},
-        url: 'http//54.202.1.109/accident-report',
+        url: 'http://18.191.226.151/accident-report',
         body: JSON.stringyfy({
           imageurl,
           location,
